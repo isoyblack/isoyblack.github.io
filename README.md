@@ -1,9 +1,10 @@
-# 《燕雲十六聲》序號大雜燴管理器
+# 《燕雲十六聲》兌換碼小助手
 
 ## 🌐 線上使用
 👉 https://isoyblack.github.io/
 
-<img width="1776" height="1439" alt="image" src="https://github.com/user-attachments/assets/22c7cd37-26f8-44a8-9341-54c696fda7b3" />
+<img width="1121" height="1079" alt="image" src="https://github.com/user-attachments/assets/2ddaab0d-a066-4c2f-b884-789bf4649a2b" />
+
 
 
 
@@ -16,11 +17,12 @@
 - ✅ 一鍵複製序號
 - ✅ TXT 匯入
 - ✅ 已完成紀錄備份／還原
-- ✅ 支援 Android 與電腦瀏覽器
 
 ---
 
 ## 更新紀錄
+### v0.43
+- 增加連結
 ### v0.41
 - 整理
 ### v0.30
