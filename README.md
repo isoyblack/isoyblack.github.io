@@ -1,9 +1,11 @@
 # 《燕雲十六聲》序號大雜燴管理器
 
 ## 🌐 線上使用
+👉 https://isoyblack.github.io/
+
 <img width="1776" height="1439" alt="image" src="https://github.com/user-attachments/assets/22c7cd37-26f8-44a8-9341-54c696fda7b3" />
 
-👉 https://isoyblack.github.io/
+
 
 ---
 
