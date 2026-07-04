@@ -232,9 +232,10 @@
     <div class="main-content">
         <h2>《燕雲十六聲》序號大雜燴管理器</h2>
         <div class="subtitle">支援大雜燴 TXT 辨識、已完成紀錄雙向匯出/匯入備份</div>
+<div style="text-align:center;margin-bottom:12px;"><button class="backup-btn" onclick="toggleLang()">🌏 中文 / English</button></div>
         
         <div class="upload-zone">
-            <div style="font-size: 14px; color: #aaa;">做法 A：直接匯入妳收集序號的 TXT 檔</div>
+            <div style="font-size: 14px; color: #aaa;">做法 A：直接匯入收集的 TXT 檔</div>
             <label for="fileInput" class="file-input-label">選擇 TXT 檔案</label>
             <input type="file" id="fileInput" accept=".txt" onchange="handleFileSelect(this)">
         </div>
@@ -274,7 +275,7 @@
     
     <!-- 聯名頁尾 -->
     <footer>
-        由 <span>豆漿紅</span> × <span>Gemini AI</span> 製作v0.2 🫠
+        Made by <span>豆漿紅</span> × <span>Gemini</span> × <span>ChatGPT AI</span> ｜ v0.30
     </footer>
 </div>
 
@@ -444,6 +445,12 @@
             document.getElementById('unclaimedList').innerHTML = '<div class="empty-hint">請匯入 TXT 或在上方貼入文字</div>';
         }
     }
+
+const LANG={zh:{title:"《燕雲十六聲》序號大雜燴管理器",sub:"支援大雜燴 TXT 辨識、已完成紀錄雙向匯出/匯入備份",a:"做法 A：直接匯入收集的 TXT 檔",btn:"選擇 TXT 檔案",or:"— 或者 —",ph:"做法 B：直接把聊天紀錄（包含名字、時間雜訊）貼進來...",parse:"解析並自動比對過濾",left:"尚未兌換的序號"},
+en:{title:"Yanyun Redemption Code Manager",sub:"Import TXT, filter redeemed codes and backup history",a:"Method A: Import your TXT file",btn:"Select TXT File",or:"— OR —",ph:"Paste chat logs here...",parse:"Parse & Filter",left:"Unclaimed Codes"}};
+function applyLang(){let l=LANG[localStorage.getItem('lang')||'zh'];document.querySelector('h2').textContent=l.title;document.querySelector('.subtitle').textContent=l.sub;document.querySelector('.upload-zone div').textContent=l.a;document.querySelector('.file-input-label').textContent=l.btn;document.querySelector('textarea').placeholder=l.ph;document.querySelector('.main-btn').textContent=l.parse;document.querySelector('.left-panel .panel-title').textContent=l.left;document.querySelector('div[style*="text-align: center; margin: 10px"]').textContent=l.or;}
+function toggleLang(){localStorage.setItem('lang',(localStorage.getItem('lang')||'zh')=='zh'?'en':'zh');applyLang();}
+window.addEventListener('load',applyLang);
 </script>
 
 </body>
