@@ -76,7 +76,7 @@
             margin-top: 10px;
             font-size: 16px;
         }
-        button.main-btn:hover { background: #4338ca; }
+        button.main-selectFile:hover { background: #4338ca; }
         .content-layout {
             display: flex;
             gap: 20px;
@@ -109,7 +109,6 @@
             align-items: center;
         }
         
-        /* 序號項目樣式優化 */
         .code-item {
             display: flex;
             justify-content: space-between;
@@ -122,10 +121,9 @@
             transition: border-color 0.2s;
         }
         
-        /* 針對 10 碼進行特殊視覺邊框強化 */
         .code-item.len-10 {
-            border-color: #f59e0b; /* 琥珀金 */
-            background: #342a1a;   /* 帶點暗金的背景色 */
+            border-color: #f59e0b;
+            background: #342a1a;
         }
         
         .code-info {
@@ -141,12 +139,10 @@
             font-weight: bold;
         }
         
-        /* 10 碼文字高亮 */
         .len-10 .code-text {
             color: #fbbf24;
         }
 
-        /* 長度標籤 */
         .badge {
             font-size: 11px;
             padding: 2px 6px;
@@ -188,7 +184,7 @@
             border-radius: 4px;
             cursor: pointer;
         }
-        .clear-btn:hover { background: #ef4444; color: white; }
+        .clear-selectFile:hover { background: #ef4444; color: white; }
         .backup-zone {
             border-top: 1px solid #444;
             padding-top: 12px;
@@ -207,9 +203,9 @@
             font-weight: bold;
             text-align: center;
         }
-        .backup-btn:hover { background: #374151; }
+        .backup-selectFile:hover { background: #374151; }
         .import-btn { background: #059669; }
-        .import-btn:hover { background: #047857; }
+        .import-selectFile:hover { background: #047857; }
         .empty-hint { color: #666; text-align: center; padding: 20px 0; font-size: 14px; }
         
         footer {
@@ -232,7 +228,7 @@
     <div class="main-content">
         <h2>《燕雲十六聲》序號大雜燴管理器</h2>
         <div class="subtitle">支援大雜燴 TXT 辨識、已完成紀錄雙向匯出/匯入備份</div>
-<div style="text-align:center;margin-bottom:12px;"><button class="backup-btn" onclick="toggleLang()">🌏 中文 / English</button></div>
+        <div style="text-align:center;margin-bottom:12px;"><button class="backup-btn" onclick="toggleLang()">🌏 English</button></div>
         
         <div class="upload-zone">
             <div style="font-size: 14px; color: #aaa;">做法 A：直接匯入收集的 TXT 檔</div>
@@ -248,9 +244,9 @@
         <div class="content-layout">
             <!-- 左側：未領取列表 -->
             <div class="left-panel">
-                <div class="panel-title">尚未兌換的序號</div>
+                <div class="panel-title" id="unclaimedTitle">尚未兌換的序號</div>
                 <div id="unclaimedList">
-                    <div class="empty-hint">請匯入 TXT 或在上方貼入文字</div>
+                    <div class="empty-hint" id="unclaimedEmptyHint">請匯入 TXT 或在上方貼入文字</div>
                 </div>
             </div>
 
@@ -258,30 +254,91 @@
             <div class="right-panel">
                 <div>
                     <div class="panel-title">
-                        <span>已完成 (<span id="historyCount">0</span>)</span>
-                        <button class="clear-btn" onclick="clearHistory()">清除</button>
+                        <span><span id="completedText">已完成</span> (<span id="historyCount">0</span>)</span>
+                        <button class="clear-btn" id="clearBtn" onclick="clearHistory()">清除</button>
                     </div>
                     <div class="history-box" id="historyList"></div>
                 </div>
                 
                 <div class="backup-zone">
-                    <button class="backup-btn" onclick="exportHistory()">📤 匯出已完成 TXT 備份</button>
-                    <label for="backupFileInput" class="backup-btn import-btn">📥 匯入舊紀錄還原</label>
+                    <button class="backup-btn" id="exportBtn" onclick="exportHistory()">📤 匯出已完成 TXT 備份</button>
+                    <label id="importBtn" for="backupFileInput" class="backup-btn import-btn">📥 匯入舊紀錄還原</label>
                     <input type="file" id="backupFileInput" accept=".txt" onchange="importHistory(this)">
                 </div>
             </div>
         </div>
     </div>
     
-    <!-- 聯名頁尾 -->
     <footer>
-        Made by <span>豆漿紅</span> × <span>Gemini</span> × <span>ChatGPT AI</span> ｜ v0.30
+        Made by <span>豆漿紅</span> × AI ｜ v0.41
     </footer>
 </div>
 
 <script>
     let historyCodes = JSON.parse(localStorage.getItem('wwm_history_codes')) || [];
-    updateHistoryUI();
+    let currentLang = localStorage.getItem('lang') || 'zh';
+
+    // 完整的語系對照表
+    const LANG = {
+        zh: {
+            title: "《燕雲十六聲》序號大雜燴管理器",
+            subtitle: "支援大雜燴 TXT 辨識、已完成紀錄雙向匯出/匯入備份",
+            uploadHint: "做法 A：直接匯入收集的 TXT 檔",
+            selectFile: "選擇 TXT 檔案",
+            or: "— 或者 —",
+            placeholder: "做法 B：直接把聊天紀錄（包含名字、時間雜訊）貼進來...",
+            parse: "解析並自動比對過濾",
+            unclaimedTitle: "尚未兌換的序號",
+            unclaimedEmpty: "請匯入 TXT 或在上方貼入文字",
+            unclaimedNone: "沒有發現新序號（可能都領過了）。",
+            unclaimedDone: "恭喜！全部序號處理完畢。",
+            completedText: "已完成",
+            clearBtn: "清除",
+            historyEmpty: "暫無紀錄",
+            exportBtn: "📤 匯出已完成 TXT 備份",
+            importBtn: "📥 匯入舊紀錄還原",
+            copyBtn: "複製序號",
+            copiedBtn: "已複製！",
+            badgeText: "碼",
+            alertCopyFail: "複製失敗，請改用 Chrome 開啟，或確認瀏覽器允許複製。",
+            alertNoExport: "目前沒有已完成的紀錄可以導出！",
+            alertImportFail: "匯入失敗：檔案中沒有找到有效的序號紀錄。",
+            alertImportSuccess: "成功成功！已載入歷史備份。\n新增了 {new} 組新序號紀錄，目前總計已完成 {total} 組。",
+            confirmClear: "確定要清空所有已完成的序號紀錄嗎？"
+        },
+        en: {
+            title: "Where Winds Meet Redemption Code Manager",
+            subtitle: "Import TXT, filter redeemed codes and backup history",
+            uploadHint: "Method A: Import your TXT file",
+            selectFile: "Select TXT File",
+            or: "— OR —",
+            placeholder: "Paste chat logs here (including names, timestamps)...",
+            parse: "Parse & Filter",
+            unclaimedTitle: "Unclaimed Codes",
+            unclaimedEmpty: "Please import a TXT file or paste text above",
+            unclaimedNone: "No new codes found (they might be already redeemed).",
+            unclaimedDone: "Congratulations! All codes processed.",
+            completedText: "Completed",
+            clearBtn: "Clear",
+            historyEmpty: "No records",
+            exportBtn: "📤 Export Completed Backup (TXT)",
+            importBtn: "📥 Import History Backup",
+            copyBtn: "Copy",
+            copiedBtn: "Copied!",
+            badgeText: " Digits",
+            alertCopyFail: "Copy failed. Please use Chrome or check browser permissions.",
+            alertNoExport: "No history found to export!",
+            alertImportFail: "Import failed: No valid codes found in the file.",
+            alertImportSuccess: "Success! History backup loaded.\nAdded {new} new codes. Total completed: {total}.",
+            confirmClear: "Are you sure you want to clear all completed history?"
+        }
+    };
+
+    window.addEventListener('load', () => {
+        applyLang();
+        updateLanguageButton();
+        updateHistoryUI();
+    });
 
     async function copyText(text) {
         if (navigator.clipboard && window.isSecureContext) {
@@ -290,20 +347,19 @@
                 return true;
             } catch(e){}
         }
-        const ta=document.createElement('textarea');
-        ta.value=text;
-        ta.setAttribute('readonly','');
-        ta.style.position='fixed';
-        ta.style.left='-9999px';
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
         document.body.appendChild(ta);
         ta.focus();
         ta.select();
-        let ok=false;
-        try{ok=document.execCommand('copy');}catch(e){}
+        let ok = false;
+        try { ok = document.execCommand('copy'); } catch(e){}
         ta.remove();
         return ok;
     }
-
 
     function handleFileSelect(input) {
         const file = input.files[0];
@@ -317,6 +373,7 @@
     }
 
     function parseCodesFromText(text) {
+        const l = LANG[currentLang];
         const regex = /\b(?![0-9]+\b)[A-Za-z0-9]{6,15}\b/g;
         let foundCodes = text.match(regex) || [];
         foundCodes = [...new Set(foundCodes.map(code => code.toUpperCase()))];
@@ -326,37 +383,37 @@
         unclaimedListDiv.innerHTML = '';
 
         if (unclaimedCodes.length === 0) {
-            unclaimedListDiv.innerHTML = '<div class="empty-hint">沒有發現新序號（可能都領過了）。</div>';
+            unclaimedListDiv.innerHTML = `<div class="empty-hint">${l.unclaimedNone}</div>`;
             return;
         }
 
         unclaimedCodes.forEach(code => {
             const isTen = code.length === 10;
             const item = document.createElement('div');
-            // 如果是 10 碼，額外加上 'len-10' class 進行視覺強化
             item.className = `code-item ${isTen ? 'len-10' : ''}`;
             
             item.innerHTML = `
                 <div class="code-info">
                     <span class="code-text">${code}</span>
-                    <span class="badge ${isTen ? 'badge-ten' : 'badge-other'}">${code.length}碼</span>
+                    <span class="badge ${isTen ? 'badge-ten' : 'badge-other'}">${code.length}${l.badgeText}</span>
                 </div>
-                <button class="copy-btn" onclick="copyAndArchive('${code}', this)">複製序號</button>
+                <button class="copy-btn" onclick="copyAndArchive('${code}', this)">${l.copyBtn}</button>
             `;
             unclaimedListDiv.appendChild(item);
         });
     }
 
     async function copyAndArchive(code, btnElement) {
-        const success=await copyText(code);
+        const l = LANG[currentLang];
+        const success = await copyText(code);
         if(!success){
-            alert('複製失敗，請改用 Chrome 開啟，或確認瀏覽器允許複製。');
+            alert(l.alertCopyFail);
             return;
         }
 
-        btnElement.innerText='已複製！';
-        btnElement.className='copy-btn copied';
-        btnElement.disabled=true;
+        btnElement.innerText = l.copiedBtn;
+        btnElement.className = 'copy-btn copied';
+        btnElement.disabled = true;
 
         if(!historyCodes.includes(code)){
             historyCodes.push(code);
@@ -366,48 +423,51 @@
 
         btnElement.parentElement.remove();
 
-        if(document.getElementById('unclaimedList').children.length===0){
-            document.getElementById('unclaimedList').innerHTML='<div class="empty-hint">恭喜！全部序號處理完畢。</div>';
+        if(document.getElementById('unclaimedList').children.length === 0){
+            document.getElementById('unclaimedList').innerHTML = `<div class="empty-hint">${l.unclaimedDone}</div>`;
         }
     }
 
     function updateHistoryUI() {
+        const l = LANG[currentLang];
         document.getElementById('historyCount').innerText = historyCodes.length;
         const historyListDiv = document.getElementById('historyList');
         historyListDiv.innerHTML = '';
 
         if (historyCodes.length === 0) {
-            historyListDiv.innerHTML = '<div class="empty-hint" style="font-size:12px;">暫無紀錄</div>';
+            historyListDiv.innerHTML = `<div class="empty-hint" style="font-size:12px;">${l.historyEmpty}</div>`;
             return;
         }
 
         [...historyCodes].reverse().forEach(code => {
             const item = document.createElement('div');
             item.className = 'history-item';
-            item.innerText = `${code} (${code.length}碼)`;
+            item.innerText = `${code} (${code.length}${l.badgeText})`;
             historyListDiv.appendChild(item);
         });
     }
 
     function exportHistory() {
+        const l = LANG[currentLang];
         if (historyCodes.length === 0) {
-            alert('目前沒有已完成的紀錄可以導出！');
+            alert(l.alertNoExport);
             return;
         }
         const now = new Date();
         const dateString = `${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${now.getMinutes()}`;
-        let fileContent = `// 燕雲十六聲已完成序號備份\n// 備份日期: ${dateString}\n// 換電腦或清快取時，可在網頁右下角匯入此檔案還原\n\n`;
+        let fileContent = `// Where Winds Meet Completed Codes Backup\n// Backup Date: ${dateString}\n\n`;
         fileContent += historyCodes.join('\n');
 
         const blob = new Blob([fileContent], { type: 'text/plain;charset=utf-8' });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
-        link.download = `燕雲已完成序號備份.txt`;
+        link.download = `WWM_Redeemed_Codes.txt`;
         link.click();
         URL.revokeObjectURL(link.href);
     }
 
     function importHistory(input) {
+        const l = LANG[currentLang];
         const file = input.files[0];
         if (!file) return;
 
@@ -419,7 +479,7 @@
             foundCodes = foundCodes.map(code => code.toUpperCase());
 
             if (foundCodes.length === 0) {
-                alert('匯入失敗：檔案中沒有找到有效的序號紀錄。');
+                alert(l.alertImportFail);
                 return;
             }
 
@@ -430,27 +490,59 @@
             localStorage.setItem('wwm_history_codes', JSON.stringify(historyCodes));
             updateHistoryUI();
             
-            alert(`成功成功！已載入歷史備份。\n新增了 ${afterCount - beforeCount} 組新序號紀錄，目前總計已完成 ${afterCount} 組。`);
+            let msg = l.alertImportSuccess.replace('{new}', afterCount - beforeCount).replace('{total}', afterCount);
+            alert(msg);
             input.value = '';
-            document.getElementById('unclaimedList').innerHTML = '<div class="empty-hint">請重新匯入大雜燴檔案或貼入文字</div>';
+            document.getElementById('unclaimedList').innerHTML = `<div class="empty-hint">${l.unclaimedEmpty}</div>`;
         };
         reader.readAsText(file, 'UTF-8');
     }
 
     function clearHistory() {
-        if (confirm('確定要清空所有已完成的序號紀錄嗎？')) {
+        const l = LANG[currentLang];
+        if (confirm(l.confirmClear)) {
             historyCodes = [];
             localStorage.removeItem('wwm_history_codes');
             updateHistoryUI();
-            document.getElementById('unclaimedList').innerHTML = '<div class="empty-hint">請匯入 TXT 或在上方貼入文字</div>';
+            document.getElementById('unclaimedList').innerHTML = `<div class="empty-hint">${l.unclaimedEmpty}</div>`;
         }
     }
 
-const LANG={zh:{title:"《燕雲十六聲》序號大雜燴管理器",sub:"支援大雜燴 TXT 辨識、已完成紀錄雙向匯出/匯入備份",a:"做法 A：直接匯入收集的 TXT 檔",btn:"選擇 TXT 檔案",or:"— 或者 —",ph:"做法 B：直接把聊天紀錄（包含名字、時間雜訊）貼進來...",parse:"解析並自動比對過濾",left:"尚未兌換的序號"},
-en:{title:"Yanyun Redemption Code Manager",sub:"Import TXT, filter redeemed codes and backup history",a:"Method A: Import your TXT file",btn:"Select TXT File",or:"— OR —",ph:"Paste chat logs here...",parse:"Parse & Filter",left:"Unclaimed Codes"}};
-function applyLang(){let l=LANG[localStorage.getItem('lang')||'zh'];document.querySelector('h2').textContent=l.title;document.querySelector('.subtitle').textContent=l.sub;document.querySelector('.upload-zone div').textContent=l.a;document.querySelector('.file-input-label').textContent=l.btn;document.querySelector('textarea').placeholder=l.ph;document.querySelector('.main-btn').textContent=l.parse;document.querySelector('.left-panel .panel-title').textContent=l.left;document.querySelector('div[style*="text-align: center; margin: 10px"]').textContent=l.or;}
-function toggleLang(){localStorage.setItem('lang',(localStorage.getItem('lang')||'zh')=='zh'?'en':'zh');applyLang();}
-window.addEventListener('load',applyLang);
+    function applyLang() {
+        let l = LANG[currentLang];
+        document.querySelector('h2').textContent = l.title;
+        document.querySelector('.subtitle').textContent = l.subtitle;
+        document.querySelector('.upload-zone div').textContent = l.uploadHint;
+        document.querySelector('.file-input-label').textContent = l.selectFile;
+        document.querySelector('textarea').placeholder = l.placeholder;
+        document.querySelector('.main-btn').textContent = l.parse;
+        document.getElementById('unclaimedTitle').textContent = l.unclaimedTitle;
+        document.getElementById('completedText').textContent = l.completedText;
+        document.getElementById('clearBtn').textContent = l.clearBtn;
+        document.getElementById('exportBtn').textContent = l.exportBtn;
+        document.getElementById('importBtn').childNodes[1].nodeValue = l.importBtn; 
+        document.querySelector('div[style*="text-align: center; margin: 10px"]').textContent = l.or;
+
+        // 如果當下列表是空的，也要一併更新提示文字
+        const unclaimedList = document.getElementById('unclaimedList');
+        if (unclaimedList.querySelector('.empty-hint')) {
+            unclaimedList.querySelector('.empty-hint').textContent = l.unclaimedEmpty;
+        }
+    }
+
+    function toggleLang() {
+        currentLang = currentLang === 'zh' ? 'en' : 'zh';
+        localStorage.setItem('lang', currentLang);
+        applyLang();
+        updateLanguageButton();
+        updateHistoryUI(); // 重新整理已完成區域的「碼/Digits」後綴
+    }
+
+    function updateLanguageButton() {
+        const btn = document.querySelector('button[onclick="toggleLang()"]');
+        if (!btn) return;
+        btn.textContent = currentLang === 'zh' ? '🌏 English' : '🌏 中文';
+    }
 </script>
 
 </body>
