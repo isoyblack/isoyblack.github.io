@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
-<head>
-    <meta charset="UTF-8">
+<!-- saved from url=(0028)https://isoyblack.github.io/ -->
+<html lang="zh-TW"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>《燕雲十六聲》序號大雜燴管理器</title>
+    <title>《燕雲十六聲》兌換碼小助手</title>
     <style>
         body {
             background-color: #121212;
@@ -16,6 +16,7 @@
             align-items: center;
             min-height: 100vh;
             box-sizing: border-box;
+            position: relative; /* 讓絕對定位的右上角按鈕能正確對齊 */
         }
         .container {
             width: 100%;
@@ -31,6 +32,37 @@
         .main-content { flex: 1; }
         h2 { text-align: center; color: #fff; margin-top: 0; margin-bottom: 5px; }
         .subtitle { text-align: center; color: #888; font-size: 13px; margin-bottom: 20px; }
+        
+        /* 右上角與左下角小房子按鈕樣式 */
+        .home-link-btn {
+            background: #f59e0b; /* 搭配家業金黃色系 */
+            color: #121212 !important;
+            padding: 8px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.2s, transform 0.1s;
+        }
+        .home-link-btn:hover {
+            background: #d97706;
+            transform: translateY(-1px);
+        }
+        .home-link-btn:active {
+            transform: translateY(1px);
+        }
+
+        /* 右上角按鈕定位 */
+        .top-right-nav {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+
         .upload-zone {
             border: 2px dashed #444;
             padding: 20px;
@@ -211,7 +243,9 @@
         footer {
             margin-top: 25px;
             width: 100%;
-            text-align: right;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             font-size: 12px;
             color: #555;
             letter-spacing: 0.5px;
@@ -220,13 +254,35 @@
             color: #4f46e5;
             font-weight: 500;
         }
+
+        /* 手機版 RWD 調整 */
+        @media (max-width: 768px) {
+            .top-right-nav {
+                position: static;
+                margin-bottom: 15px;
+                text-align: center;
+            }
+            footer {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            footer div {
+                text-align: center !important;
+            }
+        }
     </style>
 </head>
 <body>
 
+<!-- 右上角：家業客棧助手超連結 -->
+<div class="top-right-nav">
+    <a href="https://isoyblack.github.io/p2/" class="home-link-btn">🏠 家業客棧助手</a>
+</div>
+
 <div class="container">
     <div class="main-content">
-        <h2>《燕雲十六聲》序號大雜燴管理器</h2>
+        <h2>《燕雲十六聲》兌換碼小助手</h2>
         <div class="subtitle">支援大雜燴 TXT 辨識、已完成紀錄雙向匯出/匯入備份</div>
         <div style="text-align:center;margin-bottom:12px;"><button class="backup-btn" onclick="toggleLang()">🌏 English</button></div>
         
@@ -239,7 +295,7 @@
         <div style="text-align: center; margin: 10px 0; color: #555; font-size: 12px;">— 或者 —</div>
 
         <textarea id="rawInput" placeholder="做法 B：直接把聊天紀錄（包含名字、時間雜訊）貼進來..."></textarea>
-        <button class="main-btn" onclick="parseCodesFromText(document.getElementById('rawInput').value)">解析並自動比對過濾</button>
+        <button class="main-btn" onclick="parseCodesFromText(document.getElementById(&#39;rawInput&#39;).value)">解析並自動比對過濾</button>
 
         <div class="content-layout">
             <!-- 左側：未領取列表 -->
@@ -269,8 +325,14 @@
         </div>
     </div>
     
+    <!-- 左下角新增超連結，右下角維持原作者標記與修正後的 v0.43 -->
     <footer>
-        Made by <span>豆漿紅</span> × AI ｜ v0.41
+        <div style="text-align: left;">
+            <a href="https://isoyblack.github.io/p2/" class="home-link-btn" style="padding: 5px 10px; font-size: 12px;">🏠 家業客棧助手</a>
+        </div>
+        <div style="text-align: right;">
+            Made by <span>豆漿紅</span> × AI ｜ v0.43
+        </div>
     </footer>
 </div>
 
@@ -278,10 +340,9 @@
     let historyCodes = JSON.parse(localStorage.getItem('wwm_history_codes')) || [];
     let currentLang = localStorage.getItem('lang') || 'zh';
 
-    // 完整的語系對照表
     const LANG = {
         zh: {
-            title: "《燕雲十六聲》序號大雜燴管理器",
+            title: "《燕雲十六聲》兌換碼小助手",
             subtitle: "支援大雜燴 TXT 辨識、已完成紀錄雙向匯出/匯入備份",
             uploadHint: "做法 A：直接匯入收集的 TXT 檔",
             selectFile: "選擇 TXT 檔案",
@@ -523,7 +584,6 @@
         document.getElementById('importBtn').childNodes[1].nodeValue = l.importBtn; 
         document.querySelector('div[style*="text-align: center; margin: 10px"]').textContent = l.or;
 
-        // 如果當下列表是空的，也要一併更新提示文字
         const unclaimedList = document.getElementById('unclaimedList');
         if (unclaimedList.querySelector('.empty-hint')) {
             unclaimedList.querySelector('.empty-hint').textContent = l.unclaimedEmpty;
@@ -535,7 +595,7 @@
         localStorage.setItem('lang', currentLang);
         applyLang();
         updateLanguageButton();
-        updateHistoryUI(); // 重新整理已完成區域的「碼/Digits」後綴
+        updateHistoryUI();
     }
 
     function updateLanguageButton() {
@@ -545,5 +605,6 @@
     }
 </script>
 
-</body>
-</html>
+
+
+</body></html>
