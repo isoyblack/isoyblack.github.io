@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>《燕雲十六聲》序號大雜燴管理器</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #e0e0e0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .main-content { flex: 1; }
+        h2 { text-align: center; color: #fff; margin-top: 0; margin-bottom: 5px; }
+        .subtitle { text-align: center; color: #888; font-size: 13px; margin-bottom: 20px; }
+        .upload-zone {
+            border: 2px dashed #444;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px;
+            background: #1a1a1a;
+            margin-bottom: 15px;
+        }
+        .upload-zone:hover { border-color: #4f46e5; }
+        .file-input-label {
+            background: #3b82f6;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            display: inline-block;
+            margin-top: 8px;
+        }
+        .file-input-label:hover { background: #2563eb; }
+        #fileInput, #backupFileInput { display: none; }
+        textarea {
+            width: 100%;
+            height: 100px;
+            background: #2d2d2d;
+            border: 1px solid #444;
+            border-radius: 8px;
+            color: #fff;
+            padding: 10px;
+            box-sizing: border-box;
+            resize: vertical;
+            font-size: 14px;
+        }
+        button.main-btn {
+            width: 100%;
+            background: #4f46e5;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+            font-size: 16px;
+        }
+        button.main-btn:hover { background: #4338ca; }
+        .content-layout {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .left-panel { flex: 2; }
+        .right-panel {
+            flex: 1;
+            background: #252526;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .history-box {
+            max-height: 280px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+        }
+        .panel-title {
+            font-weight: bold;
+            border-bottom: 2px solid #444;
+            padding-bottom: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            color: #fff;
+            align-items: center;
+        }
+        
+        /* 序號項目樣式優化 */
+        .code-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #2d2d2d;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            border: 1px solid #3a3a3a;
+            transition: border-color 0.2s;
+        }
+        
+        /* 針對 10 碼進行特殊視覺邊框強化 */
+        .code-item.len-10 {
+            border-color: #f59e0b; /* 琥珀金 */
+            background: #342a1a;   /* 帶點暗金的背景色 */
+        }
+        
+        .code-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .code-text { 
+            font-family: monospace; 
+            font-size: 16px; 
+            letter-spacing: 1px; 
+            font-weight: bold;
+        }
+        
+        /* 10 碼文字高亮 */
+        .len-10 .code-text {
+            color: #fbbf24;
+        }
+
+        /* 長度標籤 */
+        .badge {
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .badge-ten {
+            background-color: #f59e0b;
+            color: #121212;
+        }
+        .badge-other {
+            background-color: #4b5563;
+            color: #e0e0e0;
+        }
+
+        .copy-btn {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .copy-btn.copied { background: #6b7280; }
+        .history-item {
+            font-family: monospace;
+            padding: 4px 0;
+            font-size: 14px;
+            color: #aaa;
+            border-bottom: 1px solid #333;
+        }
+        .clear-btn {
+            background: none;
+            border: 1px solid #ef4444;
+            color: #ef4444;
+            padding: 2px 6px;
+            font-size: 11px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .clear-btn:hover { background: #ef4444; color: white; }
+        .backup-zone {
+            border-top: 1px solid #444;
+            padding-top: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .backup-btn {
+            background: #4b5563;
+            color: white;
+            border: none;
+            padding: 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            text-align: center;
+        }
+        .backup-btn:hover { background: #374151; }
+        .import-btn { background: #059669; }
+        .import-btn:hover { background: #047857; }
+        .empty-hint { color: #666; text-align: center; padding: 20px 0; font-size: 14px; }
+        
+        footer {
+            margin-top: 25px;
+            width: 100%;
+            text-align: right;
+            font-size: 12px;
+            color: #555;
+            letter-spacing: 0.5px;
+        }
+        footer span {
+            color: #4f46e5;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="main-content">
+        <h2>《燕雲十六聲》序號大雜燴管理器</h2>
+        <div class="subtitle">支援大雜燴 TXT 辨識、已完成紀錄雙向匯出/匯入備份</div>
+        
+        <div class="upload-zone">
+            <div style="font-size: 14px; color: #aaa;">做法 A：直接匯入妳收集序號的 TXT 檔</div>
+            <label for="fileInput" class="file-input-label">選擇 TXT 檔案</label>
+            <input type="file" id="fileInput" accept=".txt" onchange="handleFileSelect(this)">
+        </div>
+
+        <div style="text-align: center; margin: 10px 0; color: #555; font-size: 12px;">— 或者 —</div>
+
+        <textarea id="rawInput" placeholder="做法 B：直接把聊天紀錄（包含名字、時間雜訊）貼進來..."></textarea>
+        <button class="main-btn" onclick="parseCodesFromText(document.getElementById('rawInput').value)">解析並自動比對過濾</button>
+
+        <div class="content-layout">
+            <!-- 左側：未領取列表 -->
+            <div class="left-panel">
+                <div class="panel-title">尚未兌換的序號</div>
+                <div id="unclaimedList">
+                    <div class="empty-hint">請匯入 TXT 或在上方貼入文字</div>
+                </div>
+            </div>
+
+            <!-- 右側：已完成封存區 -->
+            <div class="right-panel">
+                <div>
+                    <div class="panel-title">
+                        <span>已完成 (<span id="historyCount">0</span>)</span>
+                        <button class="clear-btn" onclick="clearHistory()">清除</button>
+                    </div>
+                    <div class="history-box" id="historyList"></div>
+                </div>
+                
+                <div class="backup-zone">
+                    <button class="backup-btn" onclick="exportHistory()">📤 匯出已完成 TXT 備份</button>
+                    <label for="backupFileInput" class="backup-btn import-btn">📥 匯入舊紀錄還原</label>
+                    <input type="file" id="backupFileInput" accept=".txt" onchange="importHistory(this)">
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 聯名頁尾 -->
+    <footer>
+        由 <span>豆漿紅</span> × <span>Gemini AI</span> 製作v0.2 🫠
+    </footer>
+</div>
+
+<script>
+    let historyCodes = JSON.parse(localStorage.getItem('wwm_history_codes')) || [];
+    updateHistoryUI();
+
+    async function copyText(text) {
+        if (navigator.clipboard && window.isSecureContext) {
+            try {
+                await navigator.clipboard.writeText(text);
+                return true;
+            } catch(e){}
+        }
+        const ta=document.createElement('textarea');
+        ta.value=text;
+        ta.setAttribute('readonly','');
+        ta.style.position='fixed';
+        ta.style.left='-9999px';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        let ok=false;
+        try{ok=document.execCommand('copy');}catch(e){}
+        ta.remove();
+        return ok;
+    }
+
+
+    function handleFileSelect(input) {
+        const file = input.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            parseCodesFromText(e.target.result);
+            input.value = '';
+        };
+        reader.readAsText(file, 'UTF-8');
+    }
+
+    function parseCodesFromText(text) {
+        const regex = /\b(?![0-9]+\b)[A-Za-z0-9]{6,15}\b/g;
+        let foundCodes = text.match(regex) || [];
+        foundCodes = [...new Set(foundCodes.map(code => code.toUpperCase()))];
+
+        const unclaimedCodes = foundCodes.filter(code => !historyCodes.includes(code));
+        const unclaimedListDiv = document.getElementById('unclaimedList');
+        unclaimedListDiv.innerHTML = '';
+
+        if (unclaimedCodes.length === 0) {
+            unclaimedListDiv.innerHTML = '<div class="empty-hint">沒有發現新序號（可能都領過了）。</div>';
+            return;
+        }
+
+        unclaimedCodes.forEach(code => {
+            const isTen = code.length === 10;
+            const item = document.createElement('div');
+            // 如果是 10 碼，額外加上 'len-10' class 進行視覺強化
+            item.className = `code-item ${isTen ? 'len-10' : ''}`;
+            
+            item.innerHTML = `
+                <div class="code-info">
+                    <span class="code-text">${code}</span>
+                    <span class="badge ${isTen ? 'badge-ten' : 'badge-other'}">${code.length}碼</span>
+                </div>
+                <button class="copy-btn" onclick="copyAndArchive('${code}', this)">複製序號</button>
+            `;
+            unclaimedListDiv.appendChild(item);
+        });
+    }
+
+    async function copyAndArchive(code, btnElement) {
+        const success=await copyText(code);
+        if(!success){
+            alert('複製失敗，請改用 Chrome 開啟，或確認瀏覽器允許複製。');
+            return;
+        }
+
+        btnElement.innerText='已複製！';
+        btnElement.className='copy-btn copied';
+        btnElement.disabled=true;
+
+        if(!historyCodes.includes(code)){
+            historyCodes.push(code);
+            localStorage.setItem('wwm_history_codes', JSON.stringify(historyCodes));
+            updateHistoryUI();
+        }
+
+        btnElement.parentElement.remove();
+
+        if(document.getElementById('unclaimedList').children.length===0){
+            document.getElementById('unclaimedList').innerHTML='<div class="empty-hint">恭喜！全部序號處理完畢。</div>';
+        }
+    }
+
+    function updateHistoryUI() {
+        document.getElementById('historyCount').innerText = historyCodes.length;
+        const historyListDiv = document.getElementById('historyList');
+        historyListDiv.innerHTML = '';
+
+        if (historyCodes.length === 0) {
+            historyListDiv.innerHTML = '<div class="empty-hint" style="font-size:12px;">暫無紀錄</div>';
+            return;
+        }
+
+        [...historyCodes].reverse().forEach(code => {
+            const item = document.createElement('div');
+            item.className = 'history-item';
+            item.innerText = `${code} (${code.length}碼)`;
+            historyListDiv.appendChild(item);
+        });
+    }
+
+    function exportHistory() {
+        if (historyCodes.length === 0) {
+            alert('目前沒有已完成的紀錄可以導出！');
+            return;
+        }
+        const now = new Date();
+        const dateString = `${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${now.getMinutes()}`;
+        let fileContent = `// 燕雲十六聲已完成序號備份\n// 備份日期: ${dateString}\n// 換電腦或清快取時，可在網頁右下角匯入此檔案還原\n\n`;
+        fileContent += historyCodes.join('\n');
+
+        const blob = new Blob([fileContent], { type: 'text/plain;charset=utf-8' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `燕雲已完成序號備份.txt`;
+        link.click();
+        URL.revokeObjectURL(link.href);
+    }
+
+    function importHistory(input) {
+        const file = input.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const text = e.target.result;
+            const regex = /\b(?![0-9]+\b)[A-Za-z0-9]{6,15}\b/g;
+            let foundCodes = text.match(regex) || [];
+            foundCodes = foundCodes.map(code => code.toUpperCase());
+
+            if (foundCodes.length === 0) {
+                alert('匯入失敗：檔案中沒有找到有效的序號紀錄。');
+                return;
+            }
+
+            const beforeCount = historyCodes.length;
+            historyCodes = [...new Set([...historyCodes, ...foundCodes])];
+            const afterCount = historyCodes.length;
+
+            localStorage.setItem('wwm_history_codes', JSON.stringify(historyCodes));
+            updateHistoryUI();
+            
+            alert(`成功成功！已載入歷史備份。\n新增了 ${afterCount - beforeCount} 組新序號紀錄，目前總計已完成 ${afterCount} 組。`);
+            input.value = '';
+            document.getElementById('unclaimedList').innerHTML = '<div class="empty-hint">請重新匯入大雜燴檔案或貼入文字</div>';
+        };
+        reader.readAsText(file, 'UTF-8');
+    }
+
+    function clearHistory() {
+        if (confirm('確定要清空所有已完成的序號紀錄嗎？')) {
+            historyCodes = [];
+            localStorage.removeItem('wwm_history_codes');
+            updateHistoryUI();
+            document.getElementById('unclaimedList').innerHTML = '<div class="empty-hint">請匯入 TXT 或在上方貼入文字</div>';
+        }
+    }
+</script>
+
+</body>
+</html>
