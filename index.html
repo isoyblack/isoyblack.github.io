@@ -367,8 +367,7 @@
             alertCopyFail: "複製失敗，請改用 Chrome 開啟，或確認瀏覽器允許複製。",
             alertNoExport: "目前沒有已完成的紀錄可以導出！",
             alertImportFail: "匯入失敗：檔案中沒有找到有效的序號紀錄。",
-            alertImportSuccess: "成功成功！已載入歷史備份。
-新增了 {new} 組新序號紀錄，目前總計已完成 {total} 組。",
+            alertImportSuccess: "成功成功！已載入歷史備份。\n新增了 {new} 組新序號紀錄，目前總計已完成 {total} 組。",
             confirmClear: "確定要清空所有已完成的序號紀錄嗎？"
         },
         en: {
@@ -394,8 +393,7 @@
             alertCopyFail: "Copy failed. Please use Chrome or check browser permissions.",
             alertNoExport: "No history found to export!",
             alertImportFail: "Import failed: No valid codes found in the file.",
-            alertImportSuccess: "Success! History backup loaded.
-Added {new} new codes. Total completed: {total}.",
+            alertImportSuccess: "Success! History backup loaded.\nAdded {new} new codes. Total completed: {total}.",
             confirmClear: "Are you sure you want to clear all completed history?"
         }
     };
@@ -440,7 +438,8 @@ Added {new} new codes. Total completed: {total}.",
 
     function parseCodesFromText(text) {
         const l = LANG[currentLang];
-        const regex = / (?![0-9]+ )[A-Za-z0-9]{6,15} /g;
+        // 還原為 v0.43 準確的邊界比對正則表達式，避免強制抓取空白導致失效
+        const regex = /\b(?![0-9]+\b)[A-Za-z0-9]{6,15}\b/g;
         let foundCodes = text.match(regex) || [];
         foundCodes = [...new Set(foundCodes.map(code => code.toUpperCase()))];
 
@@ -523,12 +522,9 @@ Added {new} new codes. Total completed: {total}.",
         }
         const now = new Date();
         const dateString = `${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${now.getMinutes()}`;
-        let fileContent = `// Where Winds Meet Completed Codes Backup
-// Backup Date: ${dateString}
-
-`;
-        fileContent += historyCodes.join('
-');
+        // 使用反引號修正換行字串語法錯誤
+        let fileContent = `// Where Winds Meet Completed Codes Backup\n// Backup Date: ${dateString}\n\n`;
+        fileContent += historyCodes.join('\n');
 
         const blob = new Blob([fileContent], { type: 'text/plain;charset=utf-8' });
         const link = document.createElement('a');
@@ -546,7 +542,7 @@ Added {new} new codes. Total completed: {total}.",
         const reader = new FileReader();
         reader.onload = function(e) {
             const text = e.target.result;
-            const regex = / (?![0-9]+ )[A-Za-z0-9]{6,15} /g;
+            const regex = /\b(?![0-9]+\b)[A-Za-z0-9]{6,15}\b/g;
             let foundCodes = text.match(regex) || [];
             foundCodes = foundCodes.map(code => code.toUpperCase());
 
@@ -597,14 +593,11 @@ Added {new} new codes. Total completed: {total}.",
         document.getElementById('clearBtn').textContent = l.clearBtn;
         document.getElementById('exportBtn').textContent = l.exportBtn;
         
-        // 修正 1：精準修正「匯入舊紀錄還原」按鈕文字
         document.getElementById('importBtn').textContent = l.importBtn; 
         
-        // 修正 2：精準抓取並修正「— 或者 —」分隔線
         const orDiv = document.querySelector('textarea').previousElementSibling;
         if (orDiv) orDiv.textContent = l.or;
 
-        // 修正 3：修正尚未領取列表中的預設提示文字
         const unclaimedList = document.getElementById('unclaimedList');
         const emptyHint = unclaimedList.querySelector('.empty-hint');
         if (emptyHint) {
